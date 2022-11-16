@@ -10275,22 +10275,22 @@ async function run() {
         core.exportVariable('DOCKER_CONFIG', dirPath);
         console.log('DOCKER_CONFIG environment variable is set');
       };
+      const tempImage = process.env.DOCKER_TEMP_IMAGE;
+      const newImageTag = `${cred.credentials.registry}/${choreoApp}:${process.env.NEW_SHA}`;
+      console.log("New Image URL : ", newImageTag);
+      var child = spawn(`docker image tag ${tempImage} ${newImageTag} && dcoker push ${newImageTag}`, {
+        shell: true
+      });
+      child.stderr.on('data', function (data) {
+        console.error("STDERR:", data.toString());
+      });
+      child.stdout.on('data', function (data) {
+        console.log("STDOUT:", data.toString());
+      });
+      child.on('exit', function (exitCode) {
+        console.log("Child exited with code: " + exitCode);
+      });
     }
-    const tempImage = process.env.DOCKER_TEMP_IMAGE;
-    const newImageTag = `${cred.credentials.registry}/${choreoApp}:${process.env.NEW_SHA}`;
-    console.log("New Image URL : ", newImageTag);
-    var child = spawn(`docker image tag ${tempImage} ${newImageTag} && dcoker push ${newImageTag}`, {
-      shell: true
-    });
-    child.stderr.on('data', function (data) {
-      console.error("STDERR:", data.toString());
-    });
-    child.stdout.on('data', function (data) {
-      console.log("STDOUT:", data.toString());
-    });
-    child.on('exit', function (exitCode) {
-      console.log("Child exited with code: " + exitCode);
-    });
   } catch (error) {
     core.setFailed(error.message);
   }
