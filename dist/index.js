@@ -10284,7 +10284,7 @@ async function run() {
         console.error("STDERR:", data.toString());
       });
       child.stdout.on("data", data => {
-        console.log(data);
+        console.log(data.toString());
       });
       child.on('exit', function (exitCode) {
         console.log("Child exited with code: " + exitCode);
