@@ -8,8 +8,7 @@ const path = require('path');
 async function run() {
   try {
     const choreoApp = process.env.CHOREO_APP;
-    const fileContents = fs.readFileSync(`/home/runner/workspace/${choreoApp}/registry-credentials.json`, 'utf8');
-    console.log("LIST :", fileContents);
+    const fileContents = fs.readFileSync(`/home/runner/workspace/${choreoApp}/${process.env.REG_CRED_FILE_NAME}`, 'utf8');
     let data = JSON.parse(fileContents);
     for (const cred of data) {
       if (cred.type == 'ACR') {
@@ -50,16 +49,13 @@ async function run() {
         console.log('DOCKER_CONFIG environment variable is set');
       };
       const tempImage = process.env.DOCKER_TEMP_IMAGE;
-      const newImageTag = `${cred.credentials.registry}/${choreoApp}:${process.env.NEW_SHA}`;
-      console.log("New Image URL : ", newImageTag);
+      const newImageTag = `${cred.credentials.registry}/${choreoApp}:${process.env.NEW_SHA}`;s
+      // Pushing images to ACR
       var child = spawn(`docker image tag ${tempImage} ${newImageTag} && docker push ${newImageTag}`, {
         shell: true
       });
       child.stderr.on('data', function (data) {
         console.error("STDERR:", data.toString());
-      });
-      child.stdout.on('data', function (data) {
-        console.log("STDOUT:", data.toString());
       });
       child.on('exit', function (exitCode) {
         console.log("Child exited with code: " + exitCode);
