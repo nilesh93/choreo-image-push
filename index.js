@@ -52,7 +52,7 @@ async function run() {
       const tempImage = process.env.DOCKER_TEMP_IMAGE;
       const newImageTag = `${cred.credentials.registry}/${choreoApp}:${process.env.NEW_SHA}`;
       console.log("New Image URL : ", newImageTag);
-      var child = spawn(`docker image tag ${tempImage} ${newImageTag} && dcoker push ${newImageTag}`, {
+      var child = spawn(`docker image tag ${tempImage} ${newImageTag} && docker push ${newImageTag}`, {
         shell: true
       });
       child.stderr.on('data', function (data) {
