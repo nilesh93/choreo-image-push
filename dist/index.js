@@ -10229,10 +10229,11 @@ const github = __nccwpck_require__(7098);
 const io = __nccwpck_require__(3984);
 const { spawn } = __nccwpck_require__(2081);
 const fs = __nccwpck_require__(7147);
+const path = __nccwpck_require__(1017);
 
 async function run() {
   try {
-    const choreoApp = process.env.CHOREO_GITOPS_REPO;
+    const choreoApp = process.env.CHOREO_APP;
     const fileContents = fs.readFileSync(`/home/runner/workspace/${choreoApp}/registry-credentials.json`, 'utf8');
     console.log("LIST :", fileContents);
     let data = JSON.parse(fileContents);

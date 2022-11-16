@@ -3,10 +3,11 @@ const github = require('@actions/github');
 const io = require("@actions/io");
 const { spawn } = require("child_process");
 const fs = require('fs');
+const path = require('path');
 
 async function run() {
   try {
-    const choreoApp = process.env.CHOREO_GITOPS_REPO;
+    const choreoApp = process.env.CHOREO_APP;
     const fileContents = fs.readFileSync(`/home/runner/workspace/${choreoApp}/registry-credentials.json`, 'utf8');
     console.log("LIST :", fileContents);
     let data = JSON.parse(fileContents);
