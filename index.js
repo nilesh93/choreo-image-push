@@ -47,22 +47,23 @@ async function run() {
         fs.writeFileSync(dockerConfigPath, JSON.stringify(config));
         core.exportVariable('DOCKER_CONFIG', dirPath);
         console.log('DOCKER_CONFIG environment variable is set');
+
+        const tempImage = process.env.DOCKER_TEMP_IMAGE;
+        const newImageTag = `${cred.credentials.registry}/${choreoApp}:${process.env.NEW_SHA}`;
+        // Pushing images to ACR
+        var child = spawn(`docker image tag ${tempImage} ${newImageTag} && docker push ${newImageTag}`, {
+          shell: true
+        });
+        child.stderr.on('data', function (data) {
+          console.error("STDERR:", data.toString());
+        });
+        child.stdout.on("data", data => {
+          console.log(data.toString());
+        });
+        child.on('exit', function (exitCode) {
+          console.log("Child exited with code: " + exitCode);
+        });
       };
-      const tempImage = process.env.DOCKER_TEMP_IMAGE;
-      const newImageTag = `${cred.credentials.registry}/${choreoApp}:${process.env.NEW_SHA}`;
-      // Pushing images to ACR
-      var child = spawn(`docker image tag ${tempImage} ${newImageTag} && docker push ${newImageTag}`, {
-        shell: true
-      });
-      child.stderr.on('data', function (data) {
-        console.error("STDERR:", data.toString());
-      });
-      child.stdout.on("data", data => {
-        console.log(data.toString());
-      });
-      child.on('exit', function (exitCode) {
-        console.log("Child exited with code: " + exitCode);
-      });
     }
   } catch (error) {
     core.setFailed(error.message);
