@@ -4,6 +4,8 @@ const { spawn } = require("child_process");
 const fs = require('fs');
 const path = require('path');
 
+const choreoApp = process.env.CHOREO_GITOPS_REPO;
+
 async function run() {
   try {
     const fileContents = fs.readFileSync(`/home/runner/workspace/${choreoApp}/${process.env.REG_CRED_FILE_NAME}`, 'utf8');
@@ -22,7 +24,6 @@ async function run() {
 }
 
 async function ecrPush(cred) {
-  const choreoApp = process.env.CHOREO_GITOPS_REPO;
   const username = cred.credentials.registryUser;
   const password = cred.credentials.registryPassword;
   const region = cred.credentials.region;
@@ -64,7 +65,6 @@ async function ecrPush(cred) {
 }
 
 async function acrPush(cred) {
-  const choreoApp = process.env.CHOREO_GITOPS_REPO;
   const username = cred.credentials.registryUser;
   const password = cred.credentials.registryPassword;
   const loginServer = cred.credentials.registry;
