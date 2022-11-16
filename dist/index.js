@@ -10275,7 +10275,7 @@ async function run() {
         console.log('DOCKER_CONFIG environment variable is set');
       };
       const tempImage = process.env.DOCKER_TEMP_IMAGE;
-      const newImageTag = `${cred.credentials.registry}/${choreoApp}:${process.env.NEW_SHA}`;s
+      const newImageTag = `${cred.credentials.registry}/${choreoApp}:${process.env.NEW_SHA}`;
       // Pushing images to ACR
       var child = spawn(`docker image tag ${tempImage} ${newImageTag} && docker push ${newImageTag}`, {
         shell: true
