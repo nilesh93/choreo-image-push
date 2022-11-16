@@ -1,0 +1,5 @@
+name: 'Choreo ACR Build Push'
+description: 'User apps build and push to the ACR'
+runs:
+  using: 'node16'
+  main: 'dist/index.js'
