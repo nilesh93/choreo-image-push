@@ -5,4 +5,6 @@ This action make login,  build and push image to ACR
 ## Example usage
 
 ```yaml
-uses: actions/choreo-acr-build-push@v1.0.0
+uses: choreo-templates/choreo-acr-build-push@v1.0.0
+
+```

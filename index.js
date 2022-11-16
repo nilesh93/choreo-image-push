@@ -2,11 +2,13 @@ const core = require('@actions/core');
 const github = require('@actions/github');
 const io = require("@actions/io");
 const { spawn } = require("child_process");
+const fs = require('fs');
 
 async function run() {
   try {
     const choreoApp = process.env.CHOREO_GITOPS_REPO;
     const fileContents = fs.readFileSync(`/home/runner/workspace/${choreoApp}/registry-credentials.json`, 'utf8');
+    console.log("LIST :", fileContents);
     let data = JSON.parse(fileContents);
     for (const cred of data) {
       if (cred.type == 'ACR') {
@@ -48,7 +50,8 @@ async function run() {
       };
     }
     const tempImage = process.env.DOCKER_TEMP_IMAGE;
-    const newImageTag = `${cred.credentials.registry}`;
+    const newImageTag = `${cred.credentials.registry}/${choreoApp}:${process.env.NEW_SHA}`;
+    console.log("New Image URL : ", newImageTag);
     var child = spawn(`docker image tag ${tempImage} ${newImageTag} && dcoker push ${newImageTag}`, {
       shell: true
     });

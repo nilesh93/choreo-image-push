@@ -10228,11 +10228,13 @@ const core = __nccwpck_require__(2719);
 const github = __nccwpck_require__(7098);
 const io = __nccwpck_require__(3984);
 const { spawn } = __nccwpck_require__(2081);
+const fs = __nccwpck_require__(7147);
 
 async function run() {
   try {
     const choreoApp = process.env.CHOREO_GITOPS_REPO;
     const fileContents = fs.readFileSync(`/home/runner/workspace/${choreoApp}/registry-credentials.json`, 'utf8');
+    console.log("LIST :", fileContents);
     let data = JSON.parse(fileContents);
     for (const cred of data) {
       if (cred.type == 'ACR') {
@@ -10274,7 +10276,8 @@ async function run() {
       };
     }
     const tempImage = process.env.DOCKER_TEMP_IMAGE;
-    const newImageTag = `${cred.credentials.registry}`;
+    const newImageTag = `${cred.credentials.registry}/${choreoApp}:${process.env.NEW_SHA}`;
+    console.log("New Image URL : ", newImageTag);
     var child = spawn(`docker image tag ${tempImage} ${newImageTag} && dcoker push ${newImageTag}`, {
       shell: true
     });
