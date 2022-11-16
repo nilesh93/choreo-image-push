@@ -1,5 +1,5 @@
 {
-  "name": "choreo-acr-build-push",
+  "name": "choreo-image-push",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -9,15 +9,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/choreo-templates/choreo-acr-build-push.git"
+    "url": "git+https://github.com/choreo-templates/choreo-image-push.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/choreo-templates/choreo-acr-build-push/issues"
+    "url": "https://github.com/choreo-templates/choreo-image-push/issues"
   },
-  "homepage": "https://github.com/choreo-templates/choreo-acr-build-push#readme",
+  "homepage": "https://github.com/choreo-templates/choreo-image-push#readme",
   "dependencies": {
     "@actions/core": "^1.10.0",
     "@actions/github": "^5.1.1",

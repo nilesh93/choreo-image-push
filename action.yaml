@@ -1,5 +1,5 @@
-name: 'Choreo ACR Build Push'
-description: 'User apps build and push to the ACR'
+name: 'Choreo Image Push'
+description: 'login and push images to container registries'
 runs:
   using: 'node16'
   main: 'dist/index.js'
