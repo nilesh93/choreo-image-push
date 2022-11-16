@@ -6,7 +6,6 @@ const path = require('path');
 
 async function run() {
   try {
-    const choreoApp = process.env.CHOREO_GITOPS_REPO;
     const fileContents = fs.readFileSync(`/home/runner/workspace/${choreoApp}/${process.env.REG_CRED_FILE_NAME}`, 'utf8');
     let data = JSON.parse(fileContents);
     for (const cred of data) {
@@ -23,9 +22,10 @@ async function run() {
 }
 
 async function ecrPush(cred) {
-  let username = cred.credentials.registryUser;
-  let password = cred.credentials.registryPassword;
-  let region = cred.credentials.region;
+  const choreoApp = process.env.CHOREO_GITOPS_REPO;
+  const username = cred.credentials.registryUser;
+  const password = cred.credentials.registryPassword;
+  const region = cred.credentials.region;
 
   var conifgChild = spawn(`
   aws configure set aws_access_key_id ${username} &&
@@ -64,10 +64,11 @@ async function ecrPush(cred) {
 }
 
 async function acrPush(cred) {
-  let username = cred.credentials.registryUser;
-  let password = cred.credentials.registryPassword;
-  let loginServer = cred.credentials.registry;
-  let authenticationToken = Buffer.from(`${username}:${password}`).toString('base64');
+  const choreoApp = process.env.CHOREO_GITOPS_REPO;
+  const username = cred.credentials.registryUser;
+  const password = cred.credentials.registryPassword;
+  const loginServer = cred.credentials.registry;
+  const authenticationToken = Buffer.from(`${username}:${password}`).toString('base64');
   let config;
   const runnerTempDirectory = process.env['RUNNER_TEMP']; // Using process.env until the core libs are updated
   const dirPath = process.env['DOCKER_CONFIG'] || path.join(runnerTempDirectory, `docker_login_${Date.now()}`);
