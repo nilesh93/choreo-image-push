@@ -10283,6 +10283,9 @@ async function run() {
       child.stderr.on('data', function (data) {
         console.error("STDERR:", data.toString());
       });
+      child.stdout.on("data", data => {
+        console.log(data);
+      });
       child.on('exit', function (exitCode) {
         console.log("Child exited with code: " + exitCode);
       });
@@ -10291,7 +10294,6 @@ async function run() {
     core.setFailed(error.message);
   }
 }
-
 
 run().catch(core.setFailed);
 })();
