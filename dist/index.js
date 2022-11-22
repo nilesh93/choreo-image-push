@@ -3371,10 +3371,11 @@ async function run() {
     let data = JSON.parse(fileContents);
     for (const cred of data) {
       if (cred.type == 'ACR') {
-        acrPush(cred);
+        await acrLogin(cred);
+        await dockerPush(cred);
       };
       if (cred.type == 'ECR') {
-        ecrPush(cred);
+        await ecrLogin(cred);
       };
     }
   } catch (error) {
@@ -3382,48 +3383,33 @@ async function run() {
   }
 }
 
-async function ecrPush(cred) {
+async function ecrLogin(cred) {
   const username = cred.credentials.registryUser;
   const password = cred.credentials.registryPassword;
   const region = cred.credentials.region;
 
-  var conifgChild = spawn(`
-  aws configure set aws_access_key_id ${username} &&
-  aws configure set aws_secret_access_key ${password} &&
-  aws configure set default.region ${region} &&
-  aws ecr-public get-login-password --region ${region} | docker login --username AWS --password-stdin public.ecr.aws &&
-  aws ecr-public describe-repositories --repository-names ${choreoApp} || aws ecr-public create-repository --repository-name ${choreoApp}`,
+  var conifgChild = spawn(`aws configure set aws_access_key_id ${username} && aws configure set aws_secret_access_key ${password} && aws configure set default.region ${region} && aws ecr-public get-login-password --region ${region} | docker login --username AWS --password-stdin public.ecr.aws && aws ecr-public describe-repositories --repository-names ${choreoApp} || aws ecr-public create-repository --repository-name ${choreoApp}`,
     {
       shell: true
     });
+
   conifgChild.stderr.on('data', function (data) {
     console.error("STDERR:", data.toString());
+    process.exit(1);
   });
   conifgChild.stdout.on("data", data => {
     console.log(data.toString());
   });
-  conifgChild.on('exit', function (exitCode) {
+  conifgChild.on('exit', async function (exitCode) {
     console.log("Config Child exited with code: " + exitCode);
-  });
-
-  const tempImage = process.env.DOCKER_TEMP_IMAGE;
-  const newImageTag = `${cred.credentials.registry}/${choreoApp}:${process.env.NEW_SHA}`;
-  // Pushing images to ACR
-  var child = spawn(`docker image tag ${tempImage} ${newImageTag} && docker push ${newImageTag}`, {
-    shell: true
-  });
-  child.stderr.on('data', function (data) {
-    console.error("STDERR:", data.toString());
-  });
-  child.stdout.on("data", data => {
-    console.log(data.toString());
-  });
-  child.on('exit', function (exitCode) {
-    console.log("Child exited with code: " + exitCode);
+    if (exitCode === 0) {
+      core.setOutput("Pushing ECR image with succeeded login");
+      await dockerPush(cred);
+    }
   });
 }
 
-async function acrPush(cred) {
+async function acrLogin(cred) {
   const username = cred.credentials.registryUser;
   const password = cred.credentials.registryPassword;
   const loginServer = cred.credentials.registry;
@@ -3459,25 +3445,36 @@ async function acrPush(cred) {
   fs.writeFileSync(dockerConfigPath, JSON.stringify(config));
   core.exportVariable('DOCKER_CONFIG', dirPath);
   console.log('DOCKER_CONFIG environment variable is set');
+}
 
-  const tempImage = process.env.DOCKER_TEMP_IMAGE;
-  const newImageTag = `${cred.credentials.registry}/${choreoApp}:${process.env.NEW_SHA}`;
-  // Pushing images to ACR
-  var child = spawn(`docker image tag ${tempImage} ${newImageTag} && docker push ${newImageTag}`, {
-    shell: true
-  });
-  child.stderr.on('data', function (data) {
-    console.error("STDERR:", data.toString());
-  });
-  child.stdout.on("data", data => {
-    console.log(data.toString());
-  });
-  child.on('exit', function (exitCode) {
-    console.log("Child exited with code: " + exitCode);
-  });
+async function dockerPush(cred) {
+  try {
+    const tempImage = process.env.DOCKER_TEMP_IMAGE;
+    const newImageTag = `${cred.credentials.registry}/${choreoApp}:${process.env.NEW_SHA}`;
+    // Pushing images to Registory
+    var child = spawn(`docker image tag ${tempImage} ${newImageTag} && docker push ${newImageTag}`, {
+      shell: true
+    });
+    child.stderr.on('data', function (data) {
+      console.error("STDERR:", data.toString());
+      process.exit(1);
+    });
+    child.stdout.on("data", data => {
+      console.log(data.toString());
+    });
+    child.on('exit', function (exitCode) {
+      console.log("Child exited with code: " + exitCode);
+    });
+  } catch (error) {
+    core.setOutput("choreo-status", "failed");
+    core.setFailed(error.message);
+    console.log("choreo-status", "failed");
+    console.log(error.message);
+  }
 }
 
 run().catch(core.setFailed);
+
 })();
 
 module.exports = __webpack_exports__;
