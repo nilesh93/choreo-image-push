@@ -35,14 +35,14 @@ async function ecrLogin(cred) {
     });
 
   conifgChild.stderr.on('data', function (data) {
-    console.error("STDERR:", data.toString());
+    core.setFailed("STDERR:", data.toString());
     process.exit(1);
   });
   conifgChild.stdout.on("data", data => {
     console.log(data.toString());
   });
   conifgChild.on('exit', async function (exitCode) {
-    console.log("Config Child exited with code: " + exitCode);
+    core.setOutput("Config Child exited with code: " + exitCode);
     if (exitCode === 0) {
       core.setOutput("Pushing ECR image with succeeded login");
       await dockerPush(cred);
