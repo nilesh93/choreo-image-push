@@ -29,16 +29,11 @@ async function ecrLogin(cred) {
   const password = cred.credentials.registryPassword;
   const region = cred.credentials.region;
 
-  console.log("TEMP PRINT :: ", username, password, region, choreoApp);
-  var conifgChild = spawn(`
-  aws configure set aws_access_key_id ${username} &&
-  aws configure set aws_secret_access_key ${password} &&
-  aws configure set default.region ${region} &&
-  aws ecr-public get-login-password --region ${region} | docker login --username AWS --password-stdin public.ecr.aws &&
-  aws ecr-public describe-repositories --repository-names ${choreoApp} || aws ecr-public create-repository --repository-name ${choreoApp}`,
+  var conifgChild = spawn(`aws configure set aws_access_key_id ${username} && aws configure set aws_secret_access_key ${password} && aws configure set default.region ${region} && aws ecr-public get-login-password --region ${region} | docker login --username AWS --password-stdin public.ecr.aws && aws ecr-public describe-repositories --repository-names ${choreoApp} || aws ecr-public create-repository --repository-name ${choreoApp}`,
     {
       shell: true
     });
+
   conifgChild.stderr.on('data', function (data) {
     console.error("STDERR:", data.toString());
     process.exit(1);
@@ -49,6 +44,7 @@ async function ecrLogin(cred) {
   conifgChild.on('exit', async function (exitCode) {
     console.log("Config Child exited with code: " + exitCode);
     if (exitCode === 0) {
+      core.setOutput("Pushing ECR image with success login");
       await dockerPush(cred);
     }
   });
