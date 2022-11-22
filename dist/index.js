@@ -3394,18 +3394,18 @@ async function ecrLogin(cred) {
     });
 
   conifgChild.stderr.on('data', function (data) {
-    console.error("STDERR:", data.toString());
-    process.exit(1);
+    core.setFailed("STDERR:", data.toString());
   });
   conifgChild.stdout.on("data", data => {
     console.log(data.toString());
   });
   conifgChild.on('exit', async function (exitCode) {
-    console.log("Config Child exited with code: " + exitCode);
-    if (exitCode === 0) {
-      core.setOutput("Pushing ECR image with succeeded login");
-      await dockerPush(cred);
+    core.setOutput("Config Child exited with code: " + exitCode);
+    if (exitCode != 0) {
+      process.exit(exitCode);
     }
+    core.setOutput("Pushing ECR image with succeeded login");
+    await dockerPush(cred);
   });
 }
 
@@ -3457,13 +3457,13 @@ async function dockerPush(cred) {
     });
     child.stderr.on('data', function (data) {
       console.error("STDERR:", data.toString());
-      process.exit(1);
     });
     child.stdout.on("data", data => {
       console.log(data.toString());
     });
     child.on('exit', function (exitCode) {
       console.log("Child exited with code: " + exitCode);
+      process.exit(exitCode);
     });
   } catch (error) {
     core.setOutput("choreo-status", "failed");
