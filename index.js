@@ -17,6 +17,7 @@ async function run() {
       };
       if (cred.type == 'ECR') {
         await ecrLogin(cred);
+        await dockerPush(cred);
       };
     }
   } catch (error) {
@@ -25,33 +26,32 @@ async function run() {
 }
 
 async function ecrLogin(cred) {
-  try {
-    const username = cred.credentials.registryUser;
-    const password = cred.credentials.registryPassword;
-    const region = cred.credentials.region;
+  const username = cred.credentials.registryUser;
+  const password = cred.credentials.registryPassword;
+  const region = cred.credentials.region;
 
-    var conifgChild = spawn(`aws configure set aws_access_key_id ${username} && aws configure set aws_secret_access_key ${password} && aws configure set default.region ${region} && aws ecr-public get-login-password --region ${region} | docker login --username AWS --password-stdin public.ecr.aws && aws ecr-public describe-repositories --repository-names ${choreoApp} || aws ecr-public create-repository --repository-name ${choreoApp}`,
-      {
-        shell: true
-      });
-
-    conifgChild.stderr.on('data', function (data) {
-      core.setOutput("STDERR:", data.toString());
+  var child = spawn(`aws configure set aws_access_key_id ${username} && aws configure set aws_secret_access_key ${password} && aws configure set default.region ${region} && aws ecr-public get-login-password --region ${region} | docker login --username AWS --password-stdin public.ecr.aws && aws ecr-public describe-repositories --repository-names ${choreoApp} || aws ecr-public create-repository --repository-name ${choreoApp}`,
+    {
+      shell: true
     });
-    conifgChild.stdout.on("data", data => {
-      console.log(data.toString());
-    });
-    conifgChild.on('exit', async function (exitCode) {
-      core.setOutput("Config Child exited with code: " + exitCode);
-      if (exitCode != 0) {
-        process.exit(exitCode);
-      }
-      core.setOutput("Pushing ECR image with succeeded login");
-      await dockerPush(cred);
-    });
-  } catch (error) {
-    core.setFailed(error);
+  var data = "";
+  for await (const chunk of child.stdout) {
+    console.log('stdout chunk: ' + chunk);
+    data += chunk;
   }
+  var error = "";
+  for await (const chunk of child.stderr) {
+    console.error('stderr chunk: ' + chunk);
+    error += chunk;
+  }
+  const exitCode = await new Promise((resolve, reject) => {
+    child.on('close', resolve);
+  });
+
+  if (exitCode) {
+    throw new Error(`subprocess error exit ${exitCode}, ${error}`);
+  }
+  return data;
 }
 
 async function acrLogin(cred) {
@@ -97,29 +97,30 @@ async function acrLogin(cred) {
 }
 
 async function dockerPush(cred) {
-  try {
-    const tempImage = process.env.DOCKER_TEMP_IMAGE;
-    const newImageTag = `${cred.credentials.registry}/${choreoApp}:${process.env.NEW_SHA}`;
-    // Pushing images to Registory
-    var child = spawn(`docker image tag ${tempImage} ${newImageTag} && docker push ${newImageTag}`, {
-      shell: true
-    });
-    child.stderr.on('data', function (data) {
-      core.setOutput("STDERR:", data.toString());
-    });
-    child.stdout.on("data", data => {
-      console.log(data.toString());
-    });
-    child.on('exit', function (exitCode) {
-      console.log("Child exited with code: " + exitCode);
-      process.exit(exitCode);
-    });
-  } catch (error) {
-    core.setOutput("choreo-status", "failed");
-    core.setFailed(error.message);
-    console.log("choreo-status", "failed");
-    console.log(error.message);
+  const tempImage = process.env.DOCKER_TEMP_IMAGE;
+  const newImageTag = `${cred.credentials.registry}/${choreoApp}:${process.env.NEW_SHA}`;
+  // Pushing images to Registory
+  var child = spawn(`docker image tag ${tempImage} ${newImageTag} && docker push ${newImageTag}`, {
+    shell: true
+  });
+  var data = "";
+  for await (const chunk of child.stdout) {
+    console.log('stdout chunk: ' + chunk);
+    data += chunk;
   }
+  var error = "";
+  for await (const chunk of child.stderr) {
+    console.error('stderr chunk: ' + chunk);
+    error += chunk;
+  }
+  const exitCode = await new Promise((resolve, reject) => {
+    child.on('close', resolve);
+  });
+
+  if (exitCode) {
+    throw new Error(`subprocess error exit ${exitCode}, ${error}`);
+  }
+  return data;
 }
 
 run().catch(core.setFailed);
