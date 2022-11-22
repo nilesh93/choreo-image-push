@@ -39,6 +39,7 @@ async function ecrPush(cred) {
     });
   conifgChild.stderr.on('data', function (data) {
     console.error("STDERR:", data.toString());
+    process.exit(1);
   });
   conifgChild.stdout.on("data", data => {
     console.log(data.toString());
@@ -55,6 +56,7 @@ async function ecrPush(cred) {
   });
   child.stderr.on('data', function (data) {
     console.error("STDERR:", data.toString());
+    process.exit(1);
   });
   child.stdout.on("data", data => {
     console.log(data.toString());
@@ -109,6 +111,7 @@ async function acrPush(cred) {
   });
   child.stderr.on('data', function (data) {
     console.error("STDERR:", data.toString());
+    process.exit(1);
   });
   child.stdout.on("data", data => {
     console.log(data.toString());
