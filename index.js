@@ -17,7 +17,6 @@ async function run() {
       };
       if (cred.type == 'ECR') {
         await ecrLogin(cred);
-        await dockerPush(cred);
       };
     }
   } catch (error) {
@@ -30,6 +29,7 @@ async function ecrLogin(cred) {
   const password = cred.credentials.registryPassword;
   const region = cred.credentials.region;
 
+  console.log("TEMP PRINT :: ", username, password, region, choreoApp);
   var conifgChild = spawn(`
   aws configure set aws_access_key_id ${username} &&
   aws configure set aws_secret_access_key ${password} &&
@@ -46,8 +46,11 @@ async function ecrLogin(cred) {
   conifgChild.stdout.on("data", data => {
     console.log(data.toString());
   });
-  conifgChild.on('exit', function (exitCode) {
+  conifgChild.on('exit', async function (exitCode) {
     console.log("Config Child exited with code: " + exitCode);
+    if (exitCode === 0) {
+      await dockerPush(cred);
+    }
   });
 }
 
