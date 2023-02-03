@@ -1,5 +1,5 @@
-name: 'Choreo Image Push'
-description: 'login and push images to container registries'
+name: "Choreo Image Push"
+description: "login and push images to container registries"
 runs:
-  using: 'node16'
-  main: 'dist/index.js'
+  using: "node16"
+  main: "index.js"
