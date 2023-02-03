@@ -60,6 +60,7 @@ async function ecrLoginPrivate(cred) {
   return data;
 }
 
+// Deprecated: Please implment this feature
 async function ecrLoginPublic(cred) {
   const username = cred.credentials.registryUser;
   const password = cred.credentials.registryPassword;
